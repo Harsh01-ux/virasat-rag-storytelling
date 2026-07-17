@@ -1,0 +1,23 @@
+# Environment variables
+.env
+
+# Vector database storage
+chroma_db/
+data/chroma_db/
+data/chunks.json
+
+# Python caches and compiles
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Output logs and system tasks
+*.log
+.system_generated/
+scratch/
+
+# Speech recordings and temporary audio files
+*.wav
+*.mp3
+recorded_audio.wav

@@ -1,0 +1,8 @@
+streamlit
+requests
+chromadb
+sentence-transformers
+google-generativeai
+gTTS
+SpeechRecognition
+python-dotenv

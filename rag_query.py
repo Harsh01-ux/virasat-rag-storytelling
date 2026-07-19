@@ -30,31 +30,52 @@ db_path = os.path.join("data", "chroma_db")
 client = None
 collection = None
 
-if os.path.exists(db_path):
-    try:
-        client = chromadb.PersistentClient(path=db_path)
-        embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="paraphrase-multilingual-mpnet-base-v2"
-        )
-        collection = client.get_or_create_collection(
-            name="heritage",
-            embedding_function=embedding_fn
-        )
-    except Exception as e:
-        print(f"Error initializing vector database globally: {e}")
+def init_db():
+    global client, collection
+    if collection is not None:
+        return
+    if os.path.exists(db_path):
+        try:
+            client = chromadb.PersistentClient(path=db_path)
+            embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="paraphrase-multilingual-mpnet-base-v2"
+            )
+            collection = client.get_or_create_collection(
+                name="heritage",
+                embedding_function=embedding_fn
+            )
+        except Exception as e:
+            print(f"Error initializing vector database: {e}")
+
+# Try to initialize at startup if database already exists
+init_db()
 
 def get_rag_response(question, target_language="English", expertise_level="beginner"):
     global collection
     
-    api_key = os.environ.get("GEMINI_API_KEY")
+    # Try to initialize if not already done (e.g., if database was just created on startup)
+    init_db()
+    
+    # Look up GEMINI_API_KEY first via streamlit secrets, then environment/dotenv
+    api_key = None
+    try:
+        import streamlit as st
+        if "GEMINI_API_KEY" in st.secrets:
+            api_key = st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        pass
+        
     if not api_key:
-        return "Error: GEMINI_API_KEY not found in environment or .env file. Please check setup.", []
+        api_key = os.environ.get("GEMINI_API_KEY")
+        
+    if not api_key:
+        return "Error: GEMINI_API_KEY not found in environment, .env file, or Streamlit secrets. Please check setup.", []
         
     # Configure Gemini API
     genai.configure(api_key=api_key)
     
     if collection is None:
-        return "Error: Vector database not found. Please run ingest.py and embed_store.py first.", []
+        return "Error: Vector database not found. Please ensure database ingestion has run.", []
 
     
     # Retrieve top 5 relevant chunks

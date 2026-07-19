@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import re
 import requests
-from rag_query import get_rag_response
+import os
 
 # Page configurations
 st.set_page_config(
@@ -10,6 +10,27 @@ st.set_page_config(
     page_icon="🏛️",
     layout="centered"
 )
+
+# Check and automatically initialize the ChromaDB database if it doesn't exist
+db_path = os.path.join("data", "chroma_db")
+if not os.path.exists(db_path) or not os.listdir(db_path):
+    st.info("First-time setup: Vector database not found. Initializing database (ingesting & embedding)...")
+    try:
+        from ingest import ingest_documents
+        from embed_store import store_embeddings
+        
+        with st.spinner("Ingesting raw heritage documents..."):
+            ingest_documents()
+            
+        with st.spinner("Generating embeddings & building ChromaDB store (this may take a few minutes)..."):
+            store_embeddings()
+            
+        st.success("First-time setup complete! Database initialized successfully.")
+        st.rerun()
+    except Exception as e:
+        st.error(f"Failed to automatically initialize database: {e}")
+
+from rag_query import get_rag_response
 
 # Helper to fetch monument image from Wikimedia Commons
 def get_monument_image_url(monument_name):

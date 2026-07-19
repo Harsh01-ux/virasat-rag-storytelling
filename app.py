@@ -462,7 +462,8 @@ with col_ctrl2:
 
 # Cache Key Evaluation
 # Define current cache key based on full combination of inputs
-current_cache_key = f"{st.session_state.selected_site}_{question}_{language_label}_{level}"
+selected_level = level if level else "beginner"
+current_cache_key = f"{st.session_state.selected_site}_{question}_{language_label}_{selected_level}"
 
 if "last_cache_key" not in st.session_state:
     st.session_state.last_cache_key = None
@@ -528,7 +529,8 @@ if generate_clicked:
         
         # Call RAG pipeline
         with st.spinner("Finalizing story..."):
-            answer, sources = get_rag_response(final_query, target_lang, level)
+            selected_level = level if level else "beginner"
+            answer, sources = get_rag_response(final_query, target_lang, selected_level)
             
         # Determine monument name for image fetching
         monument_name = st.session_state.selected_site

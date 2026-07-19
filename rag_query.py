@@ -111,6 +111,8 @@ def get_rag_response(question, target_language="English", expertise_level="begin
         context_str += f"--- Source [{source_idx}]: {site_name} (File: {source_name}) ---\n{doc}\n\n"
         
     # Adjust instructions depending on expertise level
+    if not isinstance(expertise_level, str):
+        expertise_level = "beginner"
     if expertise_level.lower() == "beginner":
         tone_instruction = "Use simple, easy-to-understand, engaging storytelling. Avoid complex terminology or explain it simply. Make it appealing to a tourist or student."
     else:
